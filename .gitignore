@@ -1,0 +1,36 @@
+# --- Dữ liệu: KHÔNG commit (nặng, chia nhau qua Drive) ---
+data/raw/*
+data/mars/*
+data/vn/*
+!data/**/.gitkeep
+*.tif
+*.tiff
+*.npy
+*.npz
+*.zip
+
+# --- Kết quả sinh ra (chạy lại được bằng run_experiments.py) ---
+experiments/results/*
+!experiments/results/.gitkeep
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+
+# --- Streamlit ---
+.streamlit/secrets.toml
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Báo cáo: file tạm của Word ---
+report/~$*

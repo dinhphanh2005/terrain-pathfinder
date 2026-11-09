@@ -1,0 +1,10 @@
+# Python >= 3.10
+numpy>=1.26
+scipy>=1.11
+scikit-image>=0.22      # chỉ dùng để đối chiếu thuật toán tự cài (MCP_Geometric, threshold_otsu...)
+rasterio>=1.3           # đọc GeoTIFF, chiếu lại về cùng lưới
+matplotlib>=3.8
+pandas>=2.1             # bảng kết quả thí nghiệm
+streamlit>=1.36
+streamlit-image-coordinates>=0.1.9
+pytest>=8.0
