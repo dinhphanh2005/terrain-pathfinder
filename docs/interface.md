@@ -42,9 +42,8 @@ Thư mục: `data/mars/` và `data/vn/`.
 
 | Phần | Người | File | Giá trị |
 | --- | --- | --- | --- |
-| 1. Dữ liệu | B | `dem.npy` | độ cao (m) |
-| 1. Dữ liệu | B | `ortho.npy` | ảnh nền xám 0–1 (nếu có) |
-| 1. Dữ liệu | B | `s1_vv_<YYYYMMDD>.npy`, `s2_ndvi_before.npy`, `s2_ndvi_after.npy` | chỉ vùng `vn` |
+| 1. Dữ liệu | dp | `dem.npy` | độ cao (m) |
+| 1. Dữ liệu | dp | `s1_vv_<YYYYMMDD>.npy`, `s2_ndvi_before.npy`, `s2_ndvi_after.npy` | chỉ vùng `vn` |
 | 2. Địa hình | A | `slope.npy` | độ dốc (độ) |
 | 2. Địa hình | A | `aspect.npy` | hướng dốc (độ, 0 = Bắc, theo chiều kim đồng hồ) |
 | 2. Địa hình | A | `roughness.npy` | độ lệch chuẩn cục bộ của độ cao (m) |

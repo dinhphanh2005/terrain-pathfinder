@@ -1,0 +1,44 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "AOI Viet Nam - Bao Yen, Lao Cai (30x30 km)",
+        "bbox_wsen": [
+          104.2952,
+          22.0555,
+          104.5862,
+          22.325
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              104.2952,
+              22.0555
+            ],
+            [
+              104.5862,
+              22.0555
+            ],
+            [
+              104.5862,
+              22.325
+            ],
+            [
+              104.2952,
+              22.325
+            ],
+            [
+              104.2952,
+              22.0555
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

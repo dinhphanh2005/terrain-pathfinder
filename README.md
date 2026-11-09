@@ -42,12 +42,4 @@ python experiments/run_experiments.py   # tái lập bảng và hình Chương 4
 streamlit run app/main.py               # giao diện demo
 ```
 
-## Phân công
-
-| Thành viên | Phần |
-| --- | --- |
-| dp | Nền móng, dữ liệu, tìm đường (Dijkstra, A*, mở rộng), giao diện, tích hợp |
-| A | Lớp địa hình, lớp hố Sao Hỏa, bản đồ chi phí |
-| B | Lớp ngập và sạt lở, vùng đệm, thí nghiệm |
-
 Định dạng dữ liệu và chữ ký hàm giữa các phần: [docs/interface.md](docs/interface.md).
