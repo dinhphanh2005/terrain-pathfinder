@@ -9,6 +9,9 @@ data/vn/*
 *.npz
 *.zip
 
+# --- Ảnh xem nhanh do prepare_data.py --preview tạo ---
+data/preview/
+
 # --- Kết quả sinh ra (chạy lại được bằng run_experiments.py) ---
 experiments/results/*
 !experiments/results/.gitkeep

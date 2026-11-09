@@ -11,7 +11,7 @@ Mọi người làm song song theo đúng file này. Muốn đổi gì thì báo
 
 ## 2. File meta đi kèm
 
-Mỗi `ten_lop.npy` có một `ten_lop.json` cùng tên:
+Mỗi `ten_lop.npy` có một `ten_lop.json` cùng tên (ví dụ thật: `data/vn/dem.json`):
 
 ```json
 {
@@ -36,22 +36,37 @@ Chỉ đọc, ghi lớp qua `src/grid_io.py`:
 - `save_layer(path, array, meta)`
 - `load_layer(path) -> (array, meta)`
 
-## 4. Tên file đầu ra theo từng phần
+## 4. Tên file các lớp
 
-Thư mục: `data/mars/` và `data/vn/`.
+Thư mục: `data/mars/` và `data/vn/`. Tất cả cùng một lưới trong mỗi vùng.
 
-| Phần | Người | File | Giá trị |
-| --- | --- | --- | --- |
-| 1. Dữ liệu | dp | `dem.npy` | độ cao (m) |
-| 1. Dữ liệu | dp | `s1_vv_<YYYYMMDD>.npy`, `s2_ndvi_before.npy`, `s2_ndvi_after.npy` | chỉ vùng `vn` |
-| 2. Địa hình | A | `slope.npy` | độ dốc (độ) |
-| 2. Địa hình | A | `aspect.npy` | hướng dốc (độ, 0 = Bắc, theo chiều kim đồng hồ) |
-| 2. Địa hình | A | `roughness.npy` | độ lệch chuẩn cục bộ của độ cao (m) |
-| 2. Địa hình | A | `hillshade.npy` | 0–1, chỉ để hiển thị |
-| 3. Nguy hiểm | B | `hazard_flood_<YYYYMMDD>.npy`, `hazard_landslide.npy` | 0/1, chỉ vùng `vn` |
-| 3. Nguy hiểm | A | `hazard_crater.npy` | 0/1, chỉ vùng `mars` |
-| 3. Nguy hiểm | B | `forbidden.npy` | 0/1, hợp các lớp nguy hiểm sau khi giãn vùng đệm |
-| 4. Chi phí | A | `cost.npy` | số giây để đi qua ô, ô cấm = `np.inf` |
+**Lớp gốc** (do `scripts/prepare_data.py` tạo, đã có):
+
+| Vùng | File | Giá trị |
+| --- | --- | --- |
+| mars | `dem` | độ cao (m), lưới 1000 × 1000, ô 20 m, quanh chỗ Perseverance hạ cánh |
+| vn | `dem` | độ cao (m), NASADEM, lưới 998 × 1003, ô 30 m, UTM 48N |
+| vn | `water` | 0/1, sông hồ thường xuyên (NASADEM SWB; chỉ có sông Hồng) |
+| vn | `s2_<ngày>_b04`, `s2_<ngày>_b08` | phản xạ bề mặt 0–1, ngày 20240427 và 20250512 |
+| vn | `s2_<ngày>_scl` | mã lớp SCL 1–11 (4 thực vật, 6 nước, 3 bóng mây, 8–9 mây, 10 mây ti mỏng) |
+| vn | `s1_<ngày>_vv` | tán xạ ngược VV dạng tuyến tính, ngày 20240903, 20240915, 20240927 |
+| vn | `roads` | 0/1, đường OSM người đi bộ dùng được (đã bỏ cao tốc, đường đang xây) |
+
+Ô ngoài khung cắt (góc lưới VN) = NaN.
+
+**Lớp tính ra** (dp viết trong `src/`):
+
+| Phần | File | Giá trị |
+| --- | --- | --- |
+| 2. Địa hình | `slope` | độ dốc (độ) |
+| 2. Địa hình | `aspect` | hướng dốc (độ, 0 = Bắc, theo chiều kim đồng hồ) |
+| 2. Địa hình | `roughness` | độ lệch chuẩn cục bộ của độ cao (m) |
+| 2. Địa hình | `hillshade` | 0–1, chỉ để hiển thị |
+| 3. Nguy hiểm | `hazard_landslide` | 0/1, chỉ `vn` |
+| 3. Nguy hiểm | `hazard_flood_h<h>` | 0/1 theo mực nước h (m), chỉ `vn` |
+| 3. Nguy hiểm | `hazard_crater` | 0/1, chỉ `mars` |
+| 3. Nguy hiểm | `forbidden` | 0/1, hợp các lớp nguy hiểm sau khi giãn vùng đệm |
+| 4. Chi phí | `cost` | số giây để đi qua ô, ô cấm = `np.inf` |
 
 ## 5. Chữ ký hàm giữa các phần
 
