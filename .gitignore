@@ -12,9 +12,9 @@ data/vn/*
 # --- Ảnh xem nhanh do prepare_data.py --preview tạo ---
 data/preview/
 
-# --- Kết quả sinh ra (chạy lại được bằng run_experiments.py) ---
-experiments/results/*
-!experiments/results/.gitkeep
+# --- Kết quả thí nghiệm: commit bảng/hình cuối; bỏ file tạm khi chạy dở (--resume) ---
+experiments/results/tables/_part_*
+experiments/results/tables/_fig_*
 
 # --- Python ---
 __pycache__/

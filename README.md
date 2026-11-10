@@ -13,7 +13,8 @@ src/            lõi thuật toán (không import gì từ app/)
   terrain.py      độ dốc (Sobel), độ gồ ghề, hillshade
   hazards.py      Otsu, lớp ngập, sạt lở, hố, vùng đệm
   cost.py         bản đồ chi phí, hàm Tobler
-  pathfinding.py  Dijkstra, A*, các phần mở rộng
+  pathfinding.py  Dijkstra, A*, A* có trọng số, A* phân cấp, điểm dừng nghỉ
+  layers.py       ghép các bước thành lớp hoàn chỉnh và bản đồ chi phí của mỗi vùng
 app/main.py     giao diện Streamlit, chỉ gọi hàm trong src/
 scripts/        tiền xử lý dữ liệu thô thành .npy
 experiments/    run_experiments.py và kết quả
@@ -37,8 +38,10 @@ Mọi lệnh chạy từ thư mục gốc của repo.
 
 ```bash
 python scripts/prepare_data.py          # dữ liệu thô -> data/mars, data/vn
-pytest                                  # kiểm tra thuật toán
-python experiments/run_experiments.py   # tái lập bảng và hình Chương 4
+python scripts/build_layers.py          # lớp địa hình + lớp nguy hiểm (~5 s)
+pytest                                  # 40 test: so thuật toán tự cài với thư viện
+python experiments/run_experiments.py   # tái lập bảng và hình Chương 4 (~5–10 phút)
+                                        # -> experiments/results/summary.md, tables/, figures/
 streamlit run app/main.py               # giao diện demo
 ```
 

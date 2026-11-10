@@ -54,27 +54,30 @@ Thư mục: `data/mars/` và `data/vn/`. Tất cả cùng một lưới trong m�
 
 Ô ngoài khung cắt (góc lưới VN) = NaN.
 
-**Lớp tính ra** (dp viết trong `src/`):
+**Lớp tính ra** (`scripts/build_layers.py`, gọi `src/layers.py`):
 
-| Phần | File | Giá trị |
+| Vùng | File | Giá trị |
 | --- | --- | --- |
-| 2. Địa hình | `slope` | độ dốc (độ) |
-| 2. Địa hình | `aspect` | hướng dốc (độ, 0 = Bắc, theo chiều kim đồng hồ) |
-| 2. Địa hình | `roughness` | độ lệch chuẩn cục bộ của độ cao (m) |
-| 2. Địa hình | `hillshade` | 0–1, chỉ để hiển thị |
-| 3. Nguy hiểm | `hazard_landslide` | 0/1, chỉ `vn` |
-| 3. Nguy hiểm | `hazard_flood_h<h>` | 0/1 theo mực nước h (m), chỉ `vn` |
-| 3. Nguy hiểm | `hazard_crater` | 0/1, chỉ `mars` |
-| 3. Nguy hiểm | `forbidden` | 0/1, hợp các lớp nguy hiểm sau khi giãn vùng đệm |
-| 4. Chi phí | `cost` | số giây để đi qua ô, ô cấm = `np.inf` |
+| cả hai | `slope`, `aspect` | độ dốc, hướng dốc (độ; hướng 0 = Bắc, theo chiều kim đồng hồ) |
+| cả hai | `roughness` | độ lệch chuẩn độ cao trong cửa sổ 3×3 (m) |
+| cả hai | `hillshade` | 0–1, chỉ để hiển thị |
+| mars | `tophat`, `hazard_crater` | độ sâu top-hat đen (m); hố va chạm 0/1 |
+| vn | `ndvi_before`, `ndvi_after`, `dndvi` | NDVI 27/4/2024, 12/5/2025, hiệu trước − sau |
+| vn | `hazard_landslide` | 0/1 |
+| vn | `river` | 0/1, lòng sông thường xuyên (NASADEM ∪ nước SCL ảnh trước bão) |
+| vn | `hazard_flood_h1`, `_h2`, `_h4`, `_h6`, `_h8` | 0/1 vùng ngập khi nước dâng h mét |
+| vn | `s1_flood_20240915` | 0/1, ngập phát hiện từ Sentinel-1 (chỉ để kiểm chứng) |
+
+Vùng cấm và bản đồ chi phí **không lưu**: tính lúc chạy bằng `src.layers.make_cost(...)` vì phụ thuộc tham số
+(mực nước, vùng đệm, trọng số) mà giao diện cho chỉnh.
 
 ## 5. Chữ ký hàm giữa các phần
 
 ```python
-# src/cost.py (A)
-build_cost(layers: dict[str, np.ndarray], meta: dict, weights: dict) -> np.ndarray
+# src/cost.py
+build_cost(slope_deg, roughness, forbidden, cell_size_m, weights=None, roads=None) -> np.ndarray
 
-# src/pathfinding.py (dp)
+# src/pathfinding.py
 find_path(cost: np.ndarray, start: tuple[int, int], goal: tuple[int, int],
           method: str = "astar") -> tuple[list[tuple[int, int]], float, int]
 # trả về (đường đi gồm các ô (r, c), tổng chi phí, số nút đã duyệt)

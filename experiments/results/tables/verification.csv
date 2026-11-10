@@ -1,0 +1,16 @@
+vùng,Hàm tự cài,Đối chiếu,Sai số tuyệt đối lớn nhất,MSE,t tự cài (s),t thư viện (s),Ghi chú
+vn,Tương quan 3×3,scipy.ndimage.correlate,0.0,0.0,0.0093,0.0065,
+vn,Độ dốc (Sobel),np.gradient,22.39778693452745,0.7492960037746723,0.0403,0.0114,"Khác do Sobel làm trơn thêm (1,2,1); không phải lỗi"
+vn,Độ lệch chuẩn cục bộ 3×3,ndimage.generic_filter(np.std),1.8281984992540856e-06,5.845149533435344e-14,0.0019,0.5315,Vùng 300×300 ô
+vn,Ngưỡng Otsu,skimage.filters.threshold_otsu,4.016328603029251e-08,1.6130895447510896e-15,0.0054,0.0041,"Trên NDVI sau bão, t = 0.5965"
+vn,"Giãn nhị phân, đĩa r=2",ndimage.binary_dilation,0.0,0.0,0.0007,0.0088,
+vn,"Co nhị phân, đĩa r=2",ndimage.binary_erosion,0.0,0.0,0.0008,0.0033,
+vn,"Giãn mức xám, đĩa r=2",ndimage.grey_dilation,0.0,0.0,0.0057,0.0216,
+vn,Gán nhãn 8 láng giềng (số thành phần),ndimage.label,0.0,0.0,0.011,0.0022,731 thành phần
+mars,Tương quan 3×3,scipy.ndimage.correlate,0.0,0.0,0.0201,0.0134,
+mars,Độ dốc (Sobel),np.gradient,3.28731738388489,0.0127150448151488,0.1333,0.0193,"Khác do Sobel làm trơn thêm (1,2,1); không phải lỗi"
+mars,Độ lệch chuẩn cục bộ 3×3,ndimage.generic_filter(np.std),8.739146862141167e-07,6.029548895753682e-15,0.012,1.1408,Vùng 300×300 ô
+mars,"Giãn nhị phân, đĩa r=2",ndimage.binary_dilation,0.0,0.0,0.0097,0.0391,
+mars,"Co nhị phân, đĩa r=2",ndimage.binary_erosion,0.0,0.0,0.002,0.0079,
+mars,"Giãn mức xám, đĩa r=2",ndimage.grey_dilation,0.0,0.0,0.0149,0.034,
+mars,Gán nhãn 8 láng giềng (số thành phần),ndimage.label,0.0,0.0,0.0136,0.0069,84 thành phần
