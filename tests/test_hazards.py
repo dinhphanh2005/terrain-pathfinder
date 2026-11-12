@@ -75,6 +75,18 @@ def test_flood_by_level_connectivity():
     assert f[:, 1:].all()
 
 
+def test_flood_by_level_nested():
+    """Nước dâng cao hơn thì vùng ngập không được nhỏ đi (lồng nhau)."""
+    rng = np.random.default_rng(0)
+    dem = np.cumsum(rng.normal(0, 1, (60, 60)), axis=1) + np.linspace(0, 30, 60)[:, None]
+    river = np.zeros(dem.shape, bool); river[:, 0] = True
+    prev = np.zeros(dem.shape, bool)
+    for h in (0.5, 1, 2, 4, 6, 8):
+        f = hz.flood_by_level(dem, river, h)
+        assert not (prev & ~f).any()
+        prev = f
+
+
 def test_crater_detects_synthetic_pit():
     r, c = np.mgrid[0:80, 0:80]
     dem = -2000.0 + 0.0 * r

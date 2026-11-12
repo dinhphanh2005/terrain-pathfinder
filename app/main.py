@@ -123,9 +123,52 @@ chosen = st.sidebar.multiselect("Lớp phủ", avail, default=avail)
 
 cost, forbidden = get_cost(region, flood_m, buffer_m, w_slope, w_rough, max_slope, use_landslide)
 
-# ---------------------------------------------------------------- bản đồ
+# ---------------------------------------------------------------- chọn điểm bằng click
+# Đọc click TRƯỚC khi vẽ bản đồ: chấm mới và tuyến hiện ngay trong lần chạy này,
+# không cần st.rerun() (lần chạy thừa làm trang giật lên xuống).
+_click = st.session_state.get(f"map_{region}")
+if _click and _click != st.session_state.get("last_click"):
+    st.session_state.last_click = _click
+    # tọa độ click tính theo ảnh đang hiển thị (width × height) -> đổi về (hàng, cột) của lưới
+    sx = cols / _click["width"] if _click.get("width") else cols / DISPLAY
+    sy = rows / _click["height"] if _click.get("height") else cols / DISPLAY
+    _p = (min(rows - 1, int(_click["y"] * sy)), min(cols - 1, int(_click["x"] * sx)))
+    _pts = st.session_state.points
+    st.session_state.points = [_p] if len(_pts) != 1 else [_pts[0], _p]
+
 st.title(NAMES[region])
 left, right = st.columns([3, 2])
+
+# ---------------------------------------------------------------- tìm đường
+# Tự tính lại khi điểm hoặc BẤT KỲ tham số nào đổi: so "khóa" tham số với lần tính trước.
+# (Trước đây phải bấm nút, quên bấm thì bản đồ đã đổi lớp mà tuyến + số liệu vẫn là của lần cũ.)
+pts = st.session_state.points
+with right:
+    again = st.button("Tìm đường", type="primary", disabled=len(pts) < 2,
+                      help="Tuyến tự tính lại khi đổi điểm hoặc tham số; bấm để tính lại và đo lại thời gian.")
+key = (region, tuple(pts), flood_m, buffer_m, w_slope, w_rough, max_slope, use_landslide,
+       method, eps, k, compare, stop_h)
+if len(pts) < 2:
+    st.session_state.result = None
+elif again or st.session_state.get("res_key") != key:
+    s = snap_to_free(cost, pts[0]); g = snap_to_free(cost, pts[1])
+    if s is None or g is None:
+        res = {"error": "Điểm chọn nằm sâu trong vùng cấm."}
+    else:
+        fn = {"A*": lambda: astar(cost, s, g), "Dijkstra": lambda: dijkstra(cost, s, g),
+              "A* có trọng số": lambda: weighted_astar(cost, s, g, eps),
+              "A* phân cấp": lambda: hierarchical_astar(cost, s, g, k=k)}[method]
+        t0 = time.perf_counter(); path, tot, n_exp = fn(); dt = time.perf_counter() - t0
+        res = {"path": path, "total": tot, "expanded": n_exp, "time": dt, "snapped": (s, g)}
+        if path:
+            res["metrics"] = path_metrics(path, layers["dem"], layers["slope"], cost, cell)
+            res["stops"] = rest_stops(path, cost, layers["slope"], every_s=stop_h * 3600)
+            if compare:
+                res["line"] = line_cells(s, g)
+    st.session_state.result = res
+    st.session_state.res_key = key
+
+# ---------------------------------------------------------------- bản đồ
 with left:
     st.caption("Bấm lên bản đồ: lần 1 chọn điểm đi, lần 2 chọn điểm đến, lần 3 chọn lại từ đầu.")
     img = Image.fromarray(compose(layers, region, chosen, flood_m, forbidden, base))
@@ -134,26 +177,20 @@ with left:
     draw = ImageDraw.Draw(disp)
     res = st.session_state.get("result")
     if res and res.get("path"):
-        pts = [(c * scale, r * scale) for r, c in res["path"]]
-        draw.line(pts, fill=(255, 0, 200), width=3)
+        draw.line([(c * scale, r * scale) for r, c in res["path"]], fill=(255, 0, 200), width=3)
         if res.get("line"):
             draw.line([(c * scale, r * scale) for r, c in res["line"]], fill=(255, 255, 255), width=1)
-        for s in res.get("stops", []):
-            r, c = s["cell"]
+        for s_ in res.get("stops", []):
+            r, c = s_["cell"]
             draw.ellipse([c * scale - 5, r * scale - 5, c * scale + 5, r * scale + 5], fill=(255, 255, 255), outline=(0, 0, 0))
     for i, (r, c) in enumerate(st.session_state.points):
         col = (0, 200, 0) if i == 0 else (220, 0, 0)
         draw.ellipse([c * scale - 6, r * scale - 6, c * scale + 6, r * scale + 6], fill=col, outline=(255, 255, 255))
 
     if streamlit_image_coordinates is not None:
-        click = streamlit_image_coordinates(disp, key=f"map_{region}")
-        if click and click != st.session_state.get("last_click"):
-            st.session_state.last_click = click
-            p = (min(rows - 1, int(click["y"] / scale)), min(cols - 1, int(click["x"] / scale)))
-            pts = st.session_state.points
-            st.session_state.points = [p] if len(pts) != 1 else [pts[0], p]
-            st.session_state.result = None
-            st.rerun()
+        # co ảnh vừa bề rộng cột (màn hình laptop hẹp hơn 760 px thì ảnh bị cắt mất mép phải);
+        # click được xử lý ở đầu lần chạy sau (khối "chọn điểm bằng click" ở trên)
+        streamlit_image_coordinates(disp, key=f"map_{region}", use_column_width="always")
     else:
         st.image(disp)
 
@@ -168,60 +205,42 @@ with left:
         q2 = c2.number_input("Cột đến", 0, cols - 1, places.get(b, (3 * rows // 4, 3 * cols // 4))[1])
         if st.button("Dùng hai điểm này"):
             st.session_state.points = [(int(r1), int(q1)), (int(r2), int(q2))]
-            st.session_state.result = None
-            st.rerun()
+            st.rerun()   # nút nằm dưới bản đồ nên phải chạy lại để bản đồ vẽ điểm mới
 
-# ---------------------------------------------------------------- tìm đường
+# ---------------------------------------------------------------- kết quả
 with right:
-    pts = st.session_state.points
+    res = st.session_state.result or {}
     if len(pts) < 2:
         st.info("Chọn đủ điểm đi và điểm đến.")
+    elif res.get("error"):
+        st.error(res["error"])
+    elif not res.get("path"):
+        st.warning("Không có đường: vùng cấm chia cắt điểm đi và điểm đến (một trong hai bị cô lập). "
+                   f"Đã duyệt hết {res['expanded']:,} ô nối được với điểm đi.")
     else:
-        if st.button("Tìm đường", type="primary") or st.session_state.get("result") is None:
-            s = snap_to_free(cost, pts[0]); g = snap_to_free(cost, pts[1])
-            if s is None or g is None:
-                st.session_state.result = {"error": "Điểm chọn nằm sâu trong vùng cấm."}
-            else:
-                fn = {"A*": lambda: astar(cost, s, g), "Dijkstra": lambda: dijkstra(cost, s, g),
-                      "A* có trọng số": lambda: weighted_astar(cost, s, g, eps),
-                      "A* phân cấp": lambda: hierarchical_astar(cost, s, g, k=k)}[method]
-                t0 = time.perf_counter(); path, tot, n_exp = fn(); dt = time.perf_counter() - t0
-                res = {"path": path, "total": tot, "expanded": n_exp, "time": dt, "snapped": (s, g)}
-                if path:
-                    res["metrics"] = path_metrics(path, layers["dem"], layers["slope"], cost, cell)
-                    res["stops"] = rest_stops(path, cost, layers["slope"], every_s=stop_h * 3600)
-                    if compare:
-                        res["line"] = line_cells(s, g)
-                st.session_state.result = res
-            st.rerun()
-        res = st.session_state.result or {}
-        if res.get("error"):
-            st.error(res["error"])
-        elif not res.get("path"):
-            st.warning("Không có đường: điểm đến bị cô lập bởi vùng cấm.")
-        else:
-            m = res["metrics"]
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Thời gian đi bộ", f"{m['time_s'] / 3600:.1f} giờ")
-            c2.metric("Độ dài", f"{m['length_m'] / 1000:.2f} km")
-            c3.metric("Dốc lớn nhất", f"{m['max_slope_deg']:.0f}°")
-            c1.metric("Tổng leo", f"{m['ascent_m']:.0f} m")
-            c2.metric("Nút đã duyệt", f"{res['expanded']:,}")
-            c3.metric("Thời gian tính", f"{res['time']:.2f} s")
-            prof = pd.DataFrame({"Khoảng cách (km)": m["profile_dist_m"] / 1000, "Độ cao (m)": m["profile_z_m"]})
-            st.subheader("Mặt cắt độ cao dọc tuyến")
-            st.line_chart(prof, x="Khoảng cách (km)", y="Độ cao (m)", height=220)
-            if res.get("line"):
-                lc = path_cost(cost, res["line"])
-                lm = path_metrics(res["line"], layers["dem"], layers["slope"], cost, cell)
-                st.caption(
-                    f"Tuyến thẳng (nét trắng): {lm['length_m'] / 1000:.2f} km, dốc lớn nhất {lm['max_slope_deg']:.0f}°, "
-                    + ("**đi qua vùng cấm**" if not np.isfinite(lc) else f"{lc / 3600:.1f} giờ"))
-            if res.get("stops"):
-                st.subheader("Điểm dừng nghỉ")
-                st.dataframe(pd.DataFrame([{"Sau (giờ)": round(s["time_s"] / 3600, 2), "Hàng": s["cell"][0],
-                                            "Cột": s["cell"][1], "Độ dốc (°)": round(float(layers["slope"][s["cell"]]), 1)}
-                                           for s in res["stops"]]), hide_index=True)
+        m = res["metrics"]
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Thời gian đi bộ", f"{m['time_s'] / 3600:.1f} giờ")
+        c2.metric("Độ dài", f"{m['length_m'] / 1000:.1f} km")
+        c3.metric("Dốc lớn nhất", f"{m['max_slope_deg']:.0f}°")
+        c1.metric("Tổng leo", f"{m['ascent_m']:.0f} m")
+        c2.metric("Nút đã duyệt", f"{res['expanded']:,}")
+        c3.metric("Thời gian tính", f"{res['time']:.2f} s")
+        prof = pd.DataFrame({"Khoảng cách (km)": m["profile_dist_m"] / 1000, "Độ cao (m)": m["profile_z_m"]})
+        st.subheader("Mặt cắt độ cao dọc tuyến")
+        st.line_chart(prof, x="Khoảng cách (km)", y="Độ cao (m)", height=220)
+        if res.get("line"):
+            lc = path_cost(cost, res["line"])
+            lm = path_metrics(res["line"], layers["dem"], layers["slope"], cost, cell)
+            st.caption(
+                f"Độ dài chính xác {m['length_m'] / 1000:.2f} km. "
+                f"Tuyến thẳng (nét trắng): {lm['length_m'] / 1000:.2f} km, dốc lớn nhất {lm['max_slope_deg']:.0f}°, "
+                + ("**đi qua vùng cấm**" if not np.isfinite(lc) else f"{lc / 3600:.1f} giờ"))
+        if res.get("stops"):
+            st.subheader("Điểm dừng nghỉ")
+            st.dataframe(pd.DataFrame([{"Sau (giờ)": round(s["time_s"] / 3600, 2), "Hàng": s["cell"][0],
+                                        "Cột": s["cell"][1], "Độ dốc (°)": round(float(layers["slope"][s["cell"]]), 1)}
+                                       for s in res["stops"]]), hide_index=True)
 
 st.caption("Dữ liệu: USGS Astrogeology (CTX DEM Jezero), NASA NASADEM, ESA Copernicus Sentinel-1/2, "
            "© OpenStreetMap contributors (ODbL).")

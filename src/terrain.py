@@ -104,7 +104,7 @@ def hillshade(dem: np.ndarray, cell_size_m: float, azimuth_deg: float = 315.0,
               altitude_deg: float = 45.0) -> np.ndarray:
     """Ảnh bóng đổ 0..1 (chỉ để hiển thị), Mặt Trời ở phương vị `azimuth_deg`, độ cao `altitude_deg`.
 
-    hs = cos(zenith)·cos(slope) + sin(zenith)·sin(slope)·cos(azimuth − aspect)
+    hs = cos(zenith)·cos(slope) + sin(zenith)·sin(slope)·cos(azimuth − aspect)   (Horn 1981)
     """
     slope, aspect = slope_aspect(dem, cell_size_m)
     s = np.radians(slope.astype(np.float64))
@@ -116,6 +116,12 @@ def hillshade(dem: np.ndarray, cell_size_m: float, azimuth_deg: float = 315.0,
 
 
 def terrain_layers(dem: np.ndarray, cell_size_m: float, rough_radius: int = 2) -> dict[str, np.ndarray]:
+    """Tính một lần cả 4 lớp địa hình từ DEM.
+
+    Vào: dem (m), cell_size_m (Δ, m), rough_radius (bán kính cửa sổ độ gồ ghề, ô).
+    Ra: dict slope (°), aspect (°, 0 = Bắc, theo chiều kim đồng hồ), roughness (m, độ lệch chuẩn
+    cục bộ cửa sổ (2r+1)×(2r+1)), hillshade (0–1, nắng từ hướng 315°, cao 45°).
+    """
     slope, aspect = slope_aspect(dem, cell_size_m)
     return {
         "slope": slope,

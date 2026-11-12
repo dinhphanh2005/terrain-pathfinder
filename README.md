@@ -39,10 +39,16 @@ Mọi lệnh chạy từ thư mục gốc của repo.
 ```bash
 python scripts/prepare_data.py          # dữ liệu thô -> data/mars, data/vn
 python scripts/build_layers.py          # lớp địa hình + lớp nguy hiểm (~5 s)
-pytest                                  # 40 test: so thuật toán tự cài với thư viện
-python experiments/run_experiments.py   # tái lập bảng và hình Chương 4 (~5–10 phút)
+pytest                                  # 46 test: so thuật toán tự cài với thư viện
+python experiments/run_experiments.py   # tái lập bảng và hình Chương 4 (~2–10 phút)
                                         # -> experiments/results/summary.md, tables/, figures/
-streamlit run app/main.py               # giao diện demo
+python experiments/run_realtime.py      # thí nghiệm (d): cập nhật theo thời gian (~5 s)
+                                        # -> experiments/results/realtime/
+streamlit run app/main.py               # giao diện demo (trang 2 "Theo thời gian" ở menu bên trái)
 ```
+
+**Cập nhật theo thời gian và điểm ngập từ camera** (`src/live.py`): mực nước sông h(t) theo kịch bản,
+quan sát điểm (camera báo ngập, báo sạt lở, đường bị chặn) có thời hạn hiệu lực; khi phía trước bị chặn
+thì tìm lại đường từ vị trí hiện tại. Kịch bản mẫu trong `data/scenarios/` là **giả lập minh họa**.
 
 Định dạng dữ liệu và chữ ký hàm giữa các phần: [docs/interface.md](docs/interface.md).

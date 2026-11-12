@@ -132,6 +132,7 @@ def label(mask: np.ndarray, connectivity: int = 8) -> tuple[np.ndarray, int]:
     parent = list(range(n))
 
     def find(x):
+        """Gốc của tập chứa đoạn x (union-find), kèm nén đường đi: trỏ thẳng lên ông."""
         while parent[x] != x:
             parent[x] = parent[parent[x]]
             x = parent[x]
@@ -198,6 +199,12 @@ SCL_BAD = (0, 1, 3, 8, 9, 11)
 
 
 def valid_scl(scl: np.ndarray, drop_cirrus: bool = False) -> np.ndarray:
+    """Mặt nạ ô Sentinel-2 dùng được theo lớp phân loại cảnh SCL.
+
+    Vào: scl (mã lớp SCL theo ô), drop_cirrus (True thì bỏ cả mây ti, mã 10).
+    Ra: mảng bool, True = ô hợp lệ. Bỏ các mã trong SCL_BAD (0 không có dữ liệu, 1 điểm ảnh lỗi,
+    3 bóng mây, 8–9 mây trung bình/dày, 11 tuyết) và ô NaN.
+    """
     bad = list(SCL_BAD) + ([10] if drop_cirrus else [])
     return np.isfinite(scl) & ~np.isin(scl, bad)
 
@@ -250,36 +257,54 @@ def landslide_mask(red0, nir0, scl0, red1, nir1, scl1, slope_deg, *,
 NEIGH8 = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
 
-def flood_by_level(dem: np.ndarray, river: np.ndarray, level_m: float) -> np.ndarray:
-    """Vùng ngập khi nước sông dâng thêm level_m mét.
+def river_reference(dem: np.ndarray, river: np.ndarray) -> np.ndarray:
+    """Độ cao của ô sông GẦN NHẤT cho mọi ô (loang BFS 8 hướng từ mọi ô sông, không xét độ cao).
 
-    Loang theo chiều rộng (BFS) đồng thời từ mọi ô sông. Mỗi ô ngập nhận "mực nước tham chiếu"
-    = độ cao của ô sông GẦN NHẤT (ô sông loang tới nó đầu tiên) + level_m, giống ý tưởng độ cao
-    so với lòng sông gần nhất (HAND, Nobre 2011). Ô láng giềng ngập nếu độ cao <= mực đó.
-    => chỉ ngập chỗ vừa thấp vừa NỐI LIỀN với sông (không ngập lòng chảo kín trên núi).
-    Lấy ô sông gần nhất (không lấy mực cao nhất) vì sông dốc dần: nếu lấy mực của thượng lưu
-    thì nước "tràn" xuống cả thung lũng hạ lưu thấp hơn hàng chục mét -> ngập giả.
+    Không phụ thuộc mực nước nên tính MỘT lần rồi dùng cho mọi h. dem - river_reference(...)
+    chính là "độ cao so với lòng sông gần nhất" (HAND, Nobre 2011), bản đơn giản: "gần nhất"
+    tính theo số bước trên lưới thay vì theo hướng dòng chảy.
     """
     rows, cols = dem.shape
     z = np.asarray(dem, np.float64)
     ref = np.full((rows, cols), np.nan)
     rr, cc = np.nonzero(river)
-    ref[rr, cc] = z[rr, cc] + level_m
-    q = deque(zip(rr.tolist(), cc.tolist()))
-    zl = z.tolist()
+    ref[rr, cc] = z[rr, cc]
     refl = ref.tolist()
+    q = deque(zip(rr.tolist(), cc.tolist()))
     while q:
         r, c = q.popleft()
-        lvl = refl[r][c]
+        v = refl[r][c]
         for dr, dc in NEIGH8:
             nr, nc = r + dr, c + dc
-            if 0 <= nr < rows and 0 <= nc < cols:
-                cur = refl[nr][nc]
-                if cur != cur and zl[nr][nc] <= lvl:  # cur != cur: NaN = chưa được gán
-                    refl[nr][nc] = lvl
-                    q.append((nr, nc))
-    flooded = ~np.isnan(np.array(refl))
-    return flooded & ~np.asarray(river, bool)
+            if 0 <= nr < rows and 0 <= nc < cols and refl[nr][nc] != refl[nr][nc]:  # NaN: chưa gán
+                refl[nr][nc] = v
+                q.append((nr, nc))
+    return np.array(refl)
+
+
+def flood_by_level(dem: np.ndarray, river: np.ndarray, level_m: float,
+                   ref: np.ndarray | None = None) -> np.ndarray:
+    """Vùng ngập khi nước sông dâng thêm level_m mét.
+
+    1. ref = độ cao ô sông gần nhất (river_reference); HAND = dem - ref.
+    2. Ứng viên ngập: HAND <= level_m (thấp hơn mặt nước của đoạn sông gần nó).
+    3. Chỉ giữ ứng viên NỐI LIỀN với sông (gán nhãn thành phần liên thông, giữ thành phần chạm sông)
+       -> không ngập lòng chảo kín trên núi.
+    Lấy ô sông gần nhất (không lấy mực cao nhất) vì sông dốc dần: nếu lấy mực của thượng lưu
+    thì nước "tràn" xuống cả thung lũng hạ lưu thấp hơn hàng chục mét -> ngập giả.
+    Vì ref không phụ thuộc h nên vùng ngập LỒNG NHAU: ngập ở h thì ngập ở mọi mức cao hơn.
+    (Bản cũ gán ref theo ô sông loang tới đầu tiên dưới ràng buộc độ cao -> ref đổi theo h,
+    có ô ngập ở 2 m mà không ngập ở 4 m.)
+    """
+    river = np.asarray(river, bool)
+    if ref is None:
+        ref = river_reference(dem, river)
+    cand = (np.asarray(dem, np.float64) - ref <= level_m) | river
+    lab, n = label(cand, 8)
+    keep = np.zeros(n + 1, bool)
+    keep[np.unique(lab[river])] = True
+    keep[0] = False
+    return keep[lab] & ~river
 
 
 def river_mask(water: np.ndarray, scl_before: np.ndarray, min_cells: int = 30) -> np.ndarray:
@@ -295,6 +320,10 @@ def river_mask(water: np.ndarray, scl_before: np.ndarray, min_cells: int = 30) -
 
 # ---------------------------------------------------------------- kiểm chứng ngập bằng Sentinel-1
 def to_db(x: np.ndarray) -> np.ndarray:
+    """Đổi hệ số tán xạ ngược radar từ đơn vị tuyến tính sang dB: 10·log10(x).
+
+    Vào: x tuyến tính (σ⁰). Ra: float32 dB. Cắt x ≥ 1e-6 để không lấy log của 0.
+    """
     return (10.0 * np.log10(np.clip(np.asarray(x, np.float64), 1e-6, None))).astype(np.float32)
 
 

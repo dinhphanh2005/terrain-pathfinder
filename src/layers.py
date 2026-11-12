@@ -37,6 +37,7 @@ def build_region(region: str) -> dict[str, np.ndarray]:
     out: dict[str, np.ndarray] = {}
 
     def put(name, arr, unit, **extra):
+        """Lưu lớp `name` (float32 .npy + .json meta: đơn vị và tham số) và giữ lại trong `out`."""
         a = np.asarray(arr, dtype=np.float32)
         save_layer(d / name, a, {**base, "layer": name, "unit": unit, **extra})
         out[name] = a
@@ -64,8 +65,9 @@ def build_region(region: str) -> dict[str, np.ndarray]:
         put("hazard_landslide", ls, "0/1")
         river = hz.river_mask(L("water"), scl0)
         put("river", river, "0/1")
+        ref = hz.river_reference(dem, river)          # tính một lần cho mọi mức nước
         for h in FLOOD_LEVELS:
-            put(f"hazard_flood_h{h}", hz.flood_by_level(dem, river, h), "0/1", level_m=h)
+            put(f"hazard_flood_h{h}", hz.flood_by_level(dem, river, h, ref), "0/1", level_m=h)
         s1, thr = hz.s1_flood_change(L("s1_20240903_vv"), L("s1_20240915_vv"), slope)
         put("s1_flood_20240915", s1, "0/1", otsu_db=thr)
     return out
@@ -93,13 +95,19 @@ def hazard_union(layers: dict, region: str, flood_m=None, use_landslide=True) ->
 
 
 def make_cost(layers: dict, meta: dict, region: str, *, flood_m="default", buffer_m=None,
-              weights=None, use_landslide=True, roads_weight=None):
-    """Bản đồ chi phí đầy đủ: lớp nguy hiểm -> vùng đệm -> forbidden -> build_cost."""
+              weights=None, use_landslide=True, roads_weight=None, extra_hazard=None):
+    """Bản đồ chi phí đầy đủ: lớp nguy hiểm -> vùng đệm -> forbidden -> build_cost.
+
+    extra_hazard: mặt nạ nguy hiểm bổ sung (vd lớp động theo thời gian trong src/live.py),
+    được hợp vào trước khi tạo vùng đệm.
+    """
     cfg = DEFAULTS[region]
     flood = cfg["flood_m"] if flood_m == "default" else flood_m
     buf = cfg["buffer_m"] if buffer_m is None else buffer_m
     cell = float(meta["cell_size_m"])
     hazard = hazard_union(layers, region, flood, use_landslide)
+    if extra_hazard is not None:
+        hazard = hazard | np.asarray(extra_hazard, bool)
     forbidden = hz.buffer(hazard, cell, buf)
     if region == "vn":
         # Sông: không lội qua, nhưng đi được trên đường cắt ngang sông (cầu).

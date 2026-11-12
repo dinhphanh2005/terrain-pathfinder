@@ -36,4 +36,7 @@ env/
 Thumbs.db
 
 # --- Báo cáo: file tạm của Word ---
-report/~$*
+report/
+
+# --- File nháp khi kiểm tra ---
+.tmp_check/

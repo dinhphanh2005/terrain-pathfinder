@@ -1,0 +1,4 @@
+time,kind,lat,lon,value,ttl_h,source,note
+2024-09-10 08:00,camera_flood,22.179783,104.338667,3.0,36.0,GIẢ LẬP,Camera ven sông Hồng ở Bảo Hà báo ngập sâu 3 m (giả lập)
+2024-09-11 07:30,landslide,22.212335,104.498891,150.0,72.0,GIẢ LẬP,Báo sạt lở mới chắn ngang tuyến (giả lập)
+2024-09-11 08:40,camera_flood,22.192024,104.50391,2.0,12.0,GIẢ LẬP,Camera ở suối báo ngập sâu 2 m (giả lập)

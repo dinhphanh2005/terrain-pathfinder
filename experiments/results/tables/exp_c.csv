@@ -1,24 +1,24 @@
 vùng,tình huống,phương pháp,tìm được,nút duyệt,thời gian chạy (s),nhận xét,chi phí (giờ)
-vn,Đích bị cô lập,Dijkstra,False,709713.0,1.66451808399961,báo đúng 'không có đường',
-vn,Đích bị cô lập,A*,False,709713.0,1.852346210000178,báo đúng 'không có đường',
-vn,Lối đi hẹp 1 ô,A*,True,288355.0,0.7585932089996277,đi qua khe,9.756356682622634
-vn,Lối đi hẹp 1 ô,A* phân cấp (k=8),True,291077.0,0.7643884590006564,đi qua khe,9.756356682622634
-vn,Lối đi hẹp 1 ô,A* phân cấp (k=16),True,344211.0,0.8944433750002645,đi qua khe,9.756356682622634
-vn,DEM có lỗ trống 2%,A*,20/20,,,chi phí tăng 0.0329 ± 0.017 (tỉ lệ),
+vn,Đích bị cô lập,Dijkstra,False,720509.0,1.5339872099999639,báo đúng 'không có đường',
+vn,Đích bị cô lập,A*,False,720509.0,1.846948459000032,báo đúng 'không có đường',
+vn,Lối đi hẹp 1 ô,A*,True,292141.0,0.7511212919999934,đi qua khe,9.756356682622634
+vn,Lối đi hẹp 1 ô,A* phân cấp (k=8),True,297167.0,0.7838890419999416,đi qua khe,9.756356682622634
+vn,Lối đi hẹp 1 ô,A* phân cấp (k=16),True,348164.0,0.8977011669999229,đi qua khe,9.756356682622634
+vn,DEM có lỗ trống 2%,A*,20/20,,,chi phí tăng 0.0375 ± 0.025 (tỉ lệ),
 vn,Mây ti mỏng (SCL=10),Lớp sạt lở,,,,giữ SCL 10: 14.62 km²; loại SCL 10: 11.97 km² (mất 18%),
-vn,Mực nước dâng 1 m,A*,20/20,,,diện tích ngập 13.5 km²,
-vn,Mực nước dâng 2 m,A*,20/20,,,diện tích ngập 15.4 km²,
-vn,Mực nước dâng 4 m,A*,20/20,,,diện tích ngập 19.9 km²,
-vn,Mực nước dâng 6 m,A*,11/20,,,diện tích ngập 24.6 km²,
-vn,Mực nước dâng 8 m,A*,11/20,,,diện tích ngập 29.4 km²,
-vn,So lớp ngập h=1 m với Sentinel-1 15/9,—,,,,31% ô ngập radar nằm trong lớp; IoU 0.040,
-vn,So lớp ngập h=2 m với Sentinel-1 15/9,—,,,,32% ô ngập radar nằm trong lớp; IoU 0.036,
-vn,So lớp ngập h=4 m với Sentinel-1 15/9,—,,,,33% ô ngập radar nằm trong lớp; IoU 0.029,
-vn,So lớp ngập h=6 m với Sentinel-1 15/9,—,,,,34% ô ngập radar nằm trong lớp; IoU 0.024,
-vn,So lớp ngập h=8 m với Sentinel-1 15/9,—,,,,34% ô ngập radar nằm trong lớp; IoU 0.021,
+vn,Mực nước dâng 1 m,A*,20/20,,,diện tích ngập 3.9 km²,
+vn,Mực nước dâng 2 m,A*,20/20,,,diện tích ngập 5.3 km²,
+vn,Mực nước dâng 4 m,A*,20/20,,,diện tích ngập 8.6 km²,
+vn,Mực nước dâng 6 m,A*,20/20,,,diện tích ngập 12.8 km²,
+vn,Mực nước dâng 8 m,A*,11/20,,,diện tích ngập 17.2 km²,
+vn,So lớp ngập h=1 m với Sentinel-1 15/9,—,,,,21% ô ngập radar nằm trong lớp; IoU 0.073,
+vn,So lớp ngập h=2 m với Sentinel-1 15/9,—,,,,26% ô ngập radar nằm trong lớp; IoU 0.072,
+vn,So lớp ngập h=4 m với Sentinel-1 15/9,—,,,,30% ô ngập radar nằm trong lớp; IoU 0.056,
+vn,So lớp ngập h=6 m với Sentinel-1 15/9,—,,,,31% ô ngập radar nằm trong lớp; IoU 0.042,
+vn,So lớp ngập h=8 m với Sentinel-1 15/9,—,,,,33% ô ngập radar nằm trong lớp; IoU 0.034,
 mars,Đích bị cô lập,Dijkstra,False,986418.0,2.2620610009998927,báo đúng 'không có đường',
 mars,Đích bị cô lập,A*,False,986418.0,2.726150917999803,báo đúng 'không có đường',
 mars,Lối đi hẹp 1 ô,A*,True,145247.0,0.4178737500005809,đi qua khe,2.841201149446629
-mars,Lối đi hẹp 1 ô,A* phân cấp (k=8),True,154647.0,0.44192949999978737,đi qua khe,2.841201149446629
-mars,Lối đi hẹp 1 ô,A* phân cấp (k=16),True,39929.0,0.11496441599956597,đi qua khe,2.841201149446629
+mars,Lối đi hẹp 1 ô,A* phân cấp (k=8),True,154647.0,0.4419294999997873,đi qua khe,2.841201149446629
+mars,Lối đi hẹp 1 ô,A* phân cấp (k=16),True,39929.0,0.1149644159995659,đi qua khe,2.841201149446629
 mars,DEM có lỗ trống 2%,A*,20/20,,,chi phí tăng 0.00704 ± 0.005 (tỉ lệ),

@@ -220,6 +220,7 @@ def rest_stops(path, cost, slope_deg, every_s: float = 3600.0, window: int = 15)
 
 
 def timed(fn, *a, **kw):
+    """Gọi fn(*a, **kw) và đo thời gian chạy. Ra: (kết quả, số giây) theo time.perf_counter."""
     t0 = time.perf_counter()
     out = fn(*a, **kw)
     return out, time.perf_counter() - t0
